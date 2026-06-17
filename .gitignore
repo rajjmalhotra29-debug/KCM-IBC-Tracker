@@ -1,0 +1,15 @@
+# secrets & local config
+backend/.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# local database & logs
+backend/ibc.db
+backend/build.db
+tools/ingest.log
+
+# generated static site (rebuilt by the GitHub Action each run)
+site/

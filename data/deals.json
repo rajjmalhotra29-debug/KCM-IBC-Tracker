@@ -1,0 +1,34 @@
+[
+  {
+    "client_name": "Bharat Tyre Manufacturing Ltd",
+    "target_name": "Vulcan Speciality Chemicals Ltd",
+    "service_type": "Acquisition & backward integration",
+    "fmv_inr_cr": 185.0,
+    "closed_on": "Mar 2026",
+    "notes": "Secured captive LSD-chemical supply via CIRP resolution."
+  },
+  {
+    "client_name": "Cadila Pharmaceuticals Limited",
+    "target_name": "Martina Bio Genics Pvt Ltd",
+    "service_type": "Acquisition & structuring",
+    "fmv_inr_cr": 240.0,
+    "closed_on": "Feb 2026",
+    "notes": "API/KSM capacity added through liquidation going-concern sale."
+  },
+  {
+    "client_name": "Best Paper Mills Private Limited",
+    "target_name": "Danalakshmi Paper Mills Pvt Ltd",
+    "service_type": "Acquisition & restructuring",
+    "fmv_inr_cr": 96.5,
+    "closed_on": "Jan 2026",
+    "notes": "Kraft-paper tonnage consolidation."
+  },
+  {
+    "client_name": "Asian Granito India Limited",
+    "target_name": "New Pearl Vitrified Pvt Ltd",
+    "service_type": "Structuring & advisory",
+    "fmv_inr_cr": 130.0,
+    "closed_on": "Dec 2025",
+    "notes": "Vitrified-tile kiln capacity, Morbi cluster."
+  }
+]
