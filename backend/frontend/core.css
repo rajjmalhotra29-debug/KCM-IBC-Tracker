@@ -113,6 +113,11 @@ code{font-family:'JetBrains Mono',monospace;font-size:.92em;background:#ffffffaa
 .vchain{font-size:13px;color:var(--ink2);margin-top:6px}
 .vchain b{color:var(--muted);font-weight:600}
 .applicant{font-size:12px;color:var(--muted);margin-top:2px}
+.profile{margin-top:10px;background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:9px;padding:10px 13px;font-size:12.5px;color:var(--ink2);line-height:1.5}
+.profile .ptag{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);font-weight:700}
+.profile b{color:var(--muted)}
+.profile a{color:var(--teal-d);font-weight:600}
+.profile .prow2{margin-top:4px;font-size:12px;color:var(--muted)}
 .reslinks{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;align-items:center}
 .reslabel{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 .reslink{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--indigo);background:var(--indigo-soft);border:1px solid #c3c8ef;border-radius:7px;padding:3px 9px;text-decoration:none;transition:filter .15s}

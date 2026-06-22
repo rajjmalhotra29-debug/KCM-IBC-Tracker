@@ -66,6 +66,12 @@
     return `<div class="reslinks"><span class="reslabel">Financials</span>${links.map(l =>
       `<a class="reslink ${l.cls}" href="${l.url}" target="_blank" rel="noopener" title="Open ${esc(name)} on ${l.label}">${l.label} <span class="typ">${l.typ}</span><span class="ar">↗</span></a>`).join("")}</div>`;
   }
+  function profileBlock(t) {
+    const p = t.profile; if (!p || !(p.summary || p.products)) return "";
+    const site = p.website ? ` · <a href="${esc(p.website)}" target="_blank" rel="noopener">official site ↗</a>` : "";
+    return `<div class="profile"><span class="ptag">Company profile</span> ${esc(p.summary || "")}${site}
+      <div class="prow2"><b>Makes:</b> ${esc(p.products || "—")} &nbsp;·&nbsp; <b>Financials:</b> ${esc(p.financials || "—")}</div></div>`;
+  }
   function formgPanel(t) {
     if (t.is_liq) return `<div class="panel"><h4><span class="ic"></span>Process &amp; entry route</h4>
       <div class="prow"><span class="lab">Stage</span><span class="val">Liquidation</span></div>
@@ -260,6 +266,7 @@
             <div class="opp-name">${esc(t.name)} <span class="stagechip ${si.cls}">${si.label}${t.is_liq ? "" : (bd !== null ? " · ~" + bd + "d to bid" : "")}</span></div>
             <div class="vchain"><b>Sector ·</b> ${esc(t.sector || "inferred from filing")}</div>
             <div class="applicant">Applicant: ${esc(t.applicant || "—")}</div>
+            ${profileBlock(t)}
             ${researchLinks(t)}
           </div>
           <div class="opp-tags">

@@ -49,6 +49,7 @@ class TargetOut(BaseModel):
     claims_days: int | None = None
     form_g_by: str | None = None
     pa_pdf: str = ""
+    profile: dict | None = None     # web-researched company profile (enrich.py)
 
 
 # ---------- Buyer ----------
