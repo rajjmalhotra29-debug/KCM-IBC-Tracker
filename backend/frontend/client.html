@@ -3,10 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KCM IBC Finder · K C Mehta &amp; Co</title>
+<title>KCM IBC Finder — companies in insolvency (IBC), updated every 20 min · K C Mehta &amp; Co</title>
+<meta name="description" content="A free, live tracker of Indian companies in the Insolvency &amp; Bankruptcy (IBC) process — sourced from the IBBI register and refreshed every 20 minutes. Search by sector, see Form G windows, claims deadlines and financial links. By K C Mehta &amp; Co.">
+<meta name="keywords" content="IBC, IBBI, insolvency, bankruptcy, CIRP, liquidation, distressed assets India, corporate debtor, Form G, resolution professional, K C Mehta">
+<meta name="theme-color" content="#15233f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f3a63'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='18' fill='white' text-anchor='middle' font-weight='bold'%3EK%3C/text%3E%3Ccircle cx='24' cy='24' r='3' fill='%23b0822f'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KCM IBC Finder">
+<meta property="og:title" content="KCM IBC Finder — India's insolvency companies, live">
+<meta property="og:description" content="Track every company entering insolvency (IBC) in India. Sourced from IBBI, refreshed every 20 minutes. By K C Mehta &amp; Co.">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="core.css?v=4">
+<link rel="stylesheet" href="core.css?v=5">
 </head>
 <body data-brand="kcm">
 <div class="wrap">
@@ -16,33 +25,41 @@
       <div class="glyph"><span id="glyphLetter">K</span></div>
       <div>
         <div class="wordmark"><span id="brandName">KCM IBC Finder</span><span class="demo-pill" id="tierPill">PUBLIC</span></div>
-        <div class="tagline" id="tagline">Distressed-asset tracker — IBBI companies in IBC, updated daily</div>
+        <div class="tagline" id="tagline">Companies in insolvency (IBC) — live from IBBI, refreshed every 20 minutes</div>
         <div class="firmtag">K C Mehta &amp; Co · IBC Origination</div>
       </div>
     </div>
     <div class="refresh-zone">
       <div class="src snap" id="src"><span class="d"></span><span id="srctxt">loading…</span></div>
       <div class="authrow" id="authRow">
-        <span style="color:var(--faint);font-size:12px">Updated daily from IBBI</span>
+        <button class="btn" onclick="CORE.openSubscribe && CORE.openSubscribe()">🔔 Get alerts</button>
         <button class="refresh" id="refreshBtn" onclick="CORE.refresh()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Refresh</button>
       </div>
     </div>
   </div>
 
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-l">
+      <h1>Every company entering <span>insolvency</span> in India — in one live list.</h1>
+      <p>Sourced from the <b>IBBI public-announcement register</b> and refreshed <b>every 20 minutes</b>. Search by sector, track Form&nbsp;G &amp; claims deadlines, open financials in a click — a faster substitute for searching IBBI yourself. Considering an acquisition? <b>K C Mehta &amp; Co</b> can assess the fit.</p>
+      <div class="hero-cta">
+        <button class="btn primary" onclick="CORE.openSubscribe && CORE.openSubscribe()">🔔 Get alerts for your sector</button>
+        <a class="btn" href="https://www.ibbi.gov.in/en/public-announcement" target="_blank" rel="noopener">View IBBI register ↗</a>
+      </div>
+    </div>
+  </div>
+
   <div class="stats" id="stats"></div>
+  <div id="insights"></div>
   <div id="trackRecord"></div>
 
-  <div class="prov">
-    <span class="live">● LIVE</span>
-    <div>This is a free, daily-updated view of companies in the <b>Insolvency &amp; Bankruptcy (IBC)</b> process,
-    sourced from the <b>IBBI public-announcement register</b> — a quick substitute for searching IBBI directly.
-    It shows the latest companies (newest first), their stage, claims deadline and Form&nbsp;G window, with one-click links to financial data.
-    For an assessment of whether a company fits <i>your</i> business, contact K C Mehta &amp; Co.</div>
-  </div>
+  <div id="sectorChips"></div>
 
   <div class="sortrow">
     <span class="sortlbl">Sort:</span>
     <button class="sortb on" id="sbNew">Newest first</button>
+    <button class="sortb" id="sbDeadline">Closing soonest</button>
     <button class="sortb" id="sbBid">Days to bid</button>
     <input class="search" id="search" placeholder="Search company / sector / applicant…" />
   </div>
@@ -50,6 +67,8 @@
     <span class="sortlbl">Filter:</span>
     <select class="fsel" id="fStage"><option value="">All stages</option><option value="cirp">CIRP only</option><option value="liq">Liquidation only</option></select>
     <select class="fsel" id="fSector"><option value="">All sectors</option></select>
+    <button class="sortb" id="fSoon">⏳ Closing soon</button>
+    <button class="sortb" id="fNew">✨ New (48h)</button>
     <button class="sortb" id="fClear" style="display:none">✕ Clear</button>
   </div>
   <div class="hidden-note" id="hiddenNote"></div>
@@ -59,22 +78,36 @@
   </div>
 
   <div class="footnote">
-    <b>Source &amp; method:</b> companies are scraped daily from the IBBI public-announcement register. Form&nbsp;G shows an estimated
-    window (≈75 days after CIRP admission); financial figures marked “on subscription · MCA” require a paid data feed for real ₹.
-    The list shows the latest companies that appeared on IBBI (including those whose application window has lapsed), newest first.
-    Data is real and unmodified; nothing is fabricated. This tool does not constitute advice.
+    <b>Source &amp; method:</b> companies are scraped from the IBBI public-announcement register and refreshed <b>every 20 minutes</b>;
+    repeat announcements of the same company are merged to one entry (latest). Form&nbsp;G shows an estimated window (≈75 days after CIRP
+    admission); figures marked “on subscription · MCA” need a paid feed for real ₹. The list shows the latest companies on IBBI (including
+    those whose window has lapsed), newest first. Data is real and unmodified. This tool does not constitute advice.
+  </div>
+</div>
+
+<!-- SUBSCRIBE MODAL -->
+<div class="modal" id="subscribeModal">
+  <div class="sheet">
+    <div class="mhead"><div><h3>🔔 Get IBC alerts</h3><div class="sub">We'll notify you when new companies appear in your sectors.</div></div><button class="x" onclick="CORE.closeModal('subscribeModal')">✕</button></div>
+    <div class="field"><label>Your name</label><input id="sb_name"></div>
+    <div class="field"><label>Email *</label><input id="sb_email" type="email"></div>
+    <div class="field"><label>Company / firm</label><input id="sb_org"></div>
+    <div class="field"><label>Sectors of interest (comma-separated)</label><input id="sb_sectors" placeholder="e.g. paper, steel, pharma"></div>
+    <input type="text" id="sb_botcheck" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px">
+    <button class="btn primary" style="width:100%;justify-content:center" onclick="CORE.submitSubscribe()">Subscribe</button>
+    <div class="err" id="sb_err"></div><div class="ok" id="sb_ok"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 <script>
-// Engage form delivery. Preferred (M365): paste your Microsoft Form link below; use {ASSET}
-// where the company name should be pre-filled. If blank, falls back to the in-page form
-// (Web3Forms key) or the user's email app.
+// Engage + Subscribe delivery. Preferred (M365): paste your Microsoft Form link below; use
+// {ASSET} where the company name should be pre-filled. Else the in-page form posts to
+// Web3Forms (window.ENGAGE_KEY) or falls back to the user's email app.
 window.ENGAGE_FORM_URL = "";
 window.ENGAGE_KEY = "";
 </script>
-<script src="core.js?v=4"></script>
+<script src="core.js?v=5"></script>
 <script>CORE.init({ brand: "kcm", dataUrl: (window.DATA_URL || "data.json"), fallbackUrl: "data.json" });</script>
 </body>
 </html>

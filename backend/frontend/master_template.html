@@ -27,6 +27,7 @@
   </div>
 
   <div class="stats" id="stats"></div>
+  <div id="insights"></div>
   <div id="trackRecord"></div>
 
   <div class="prov">
@@ -36,9 +37,11 @@
     client master in your browser — nothing leaves this device. Use <b>Client master</b> to add/edit clients or change the password.</div>
   </div>
 
+  <div id="sectorChips"></div>
   <div class="sortrow">
     <span class="sortlbl">Sort:</span>
     <button class="sortb on" id="sbNew">Newest first</button>
+    <button class="sortb" id="sbDeadline">Closing soonest</button>
     <button class="sortb" id="sbBid">Days to bid</button>
     <button class="sortb" id="sbFit">Best fit</button>
     <input class="search" id="search" placeholder="Search company / sector / applicant…" />
@@ -48,6 +51,8 @@
     <select class="fsel" id="fStage"><option value="">All stages</option><option value="cirp">CIRP only</option><option value="liq">Liquidation only</option></select>
     <select class="fsel" id="fSector"><option value="">All sectors</option></select>
     <button class="sortb" id="fMatched">Matched only</button>
+    <button class="sortb" id="fSoon">⏳ Closing soon</button>
+    <button class="sortb" id="fNew">✨ New (48h)</button>
     <button class="sortb" id="fClear" style="display:none">✕ Clear</button>
   </div>
   <div class="hidden-note" id="hiddenNote"></div>

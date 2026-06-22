@@ -11,15 +11,15 @@
   // ---- config / state ----
   const CFG = { brand: "kcm", dataUrl: "data.json", fallbackUrl: "data.json" };
   let DATA = null;
-  let sortMode = "new";          // new | bid | fit
-  let q = "", fStage = "", fSector = "", fMatched = false;
+  let sortMode = "new";          // new | deadline | bid | fit
+  let q = "", fStage = "", fSector = "", fMatched = false, fSoon = false, fNew = false;
   const PAGE_SIZE = 30;
   let shown = PAGE_SIZE;
 
   const BRANDS = {
     kcm: { name: "KCM IBC Finder", glyph: "K",
-      tagline: "Distressed-asset tracker — IBBI companies in IBC, updated daily",
-      title: "KCM IBC Finder · K C Mehta & Co" },
+      tagline: "Companies in insolvency (IBC) — live from IBBI, refreshed every 20 minutes",
+      title: "KCM IBC Finder — companies in insolvency (IBC), updated every 20 min · K C Mehta & Co" },
     jarvis: { name: "Jarvis", glyph: "J",
       tagline: "Insolvency opportunity desk — IBBI companies in IBC",
       title: "Jarvis — IBC Origination Desk" },
@@ -45,6 +45,15 @@
   function announceTs(t) { const d = parseDate(t.admit) || parseDate(t.announcement_date); return d ? d.getTime() : 0; }
   function bidDays(t) { if (t.is_liq) return null; return daysUntil(t.form_g_by); }
   function claimsDays(t) { const d = daysUntil(t.claims_by); return d === null ? t.claims_days : d; }
+  function nextDeadlineDays(t) {            // soonest upcoming (non-negative) of claims / Form G
+    const cands = [claimsDays(t), bidDays(t)].filter(d => d !== null && d >= 0);
+    return cands.length ? Math.min(...cands) : null;
+  }
+  function isNew(t) {                        // appeared on IBBI in the last 48h
+    const d = parseDate(t.admit) || parseDate(t.announcement_date);
+    if (!d) return false;
+    return (today0() - d) / 86400000 <= 2;
+  }
   function dlClass(d) { if (d === null) return "dl-ok"; if (d < 0) return "dl-closed"; return d <= 5 ? "dl-urgent" : d <= 12 ? "dl-soon" : "dl-ok"; }
   function dlText(t) { const d = claimsDays(t); if (d === null) return t.claims_by || "—"; if (d < 0) return "claims closed · " + t.claims_by; return d + "d · claims by " + t.claims_by; }
   function stageInfo(t) {
@@ -231,6 +240,75 @@
     sel.value = cur;
   }
 
+  function _sectorCounts() {
+    const sc = {};
+    (DATA.opportunities || []).forEach(o => (o.target.sector || "").split(/[,;]/).forEach(s => {
+      s = s.trim(); const k = s.toLowerCase();
+      if (s && k !== "inferred from filing") sc[s] = (sc[s] || 0) + 1;
+    }));
+    return Object.entries(sc).sort((a, b) => b[1] - a[1]);
+  }
+  function renderInsights() {
+    const el = $("insights"); if (!el || !DATA) return;
+    const opps = DATA.opportunities || [];
+    const top = _sectorCounts().slice(0, 6);
+    const max = top.length ? top[0][1] : 1;
+    let cirp = 0, liq = 0, fresh = 0;
+    opps.forEach(o => {
+      if (o.target.is_liq) liq++; else cirp++;
+      const d = parseDate(o.target.admit) || parseDate(o.target.announcement_date);
+      if (d && (today0() - d) / 86400000 <= 7) fresh++;
+    });
+    const soon = opps.filter(o => { const d = nextDeadlineDays(o.target); return d !== null && d <= 14; }).length;
+    el.innerHTML = `<div class="insights">
+      <div class="ins"><h4>Top sectors</h4>${top.map(([s, n]) => `<div class="ibar"><span class="il">${esc(s)}</span><span class="it"><i style="width:${Math.round(n / max * 100)}%"></i></span><span class="iv">${n}</span></div>`).join("") || '<div class="il">—</div>'}</div>
+      <div class="ins"><h4>By process</h4><div class="ins-split"><div class="seg cirp"><div class="sv">${cirp}</div><div class="sk">CIRP</div></div><div class="seg liq"><div class="sv">${liq}</div><div class="sk">Liquidation</div></div></div>
+        <div class="ibar" style="margin-top:12px"><span class="il">Closing ≤14d</span><span class="it"><i style="width:${Math.round(soon / Math.max(1, opps.length) * 100)}%"></i></span><span class="iv">${soon}</span></div></div>
+      <div class="ins"><div class="ins-big"><div class="v">${fresh}</div><div class="k">new this week</div></div></div>
+    </div>`;
+  }
+  function renderSectorChips() {
+    const el = $("sectorChips"); if (!el || !DATA) return;
+    const top = _sectorCounts().slice(0, 10);
+    el.innerHTML = top.length ? `<div class="chips"><span class="clbl">Sectors:</span>${top.map(([s, n]) =>
+      `<span class="chip ${fSector === s ? "on" : ""}" onclick="CORE.toggleSector('${esc(s).replace(/'/g, "\\'")}')">${esc(s)}<span class="cct">${n}</span></span>`).join("")}</div>` : "";
+  }
+  function toggleSector(s) {
+    fSector = (fSector === s) ? "" : s;
+    if ($("fSector")) $("fSector").value = fSector;
+    resetPaging(); render(); renderSectorChips();
+  }
+
+  // ---- subscribe (IBC alerts) ----
+  function openSubscribe() {
+    ["sb_name", "sb_email", "sb_org", "sb_sectors"].forEach(i => { if ($(i)) $(i).value = ""; });
+    if ($("sb_err")) $("sb_err").textContent = ""; if ($("sb_ok")) $("sb_ok").textContent = "";
+    openModal("subscribeModal"); setTimeout(() => $("sb_email") && $("sb_email").focus(), 50);
+  }
+  async function submitSubscribe() {
+    const g = (id) => ($(id) ? $(id).value.trim() : "");
+    const name = g("sb_name"), email = g("sb_email"), org = g("sb_org"), sectors = g("sb_sectors");
+    $("sb_err").textContent = ""; $("sb_ok").textContent = "";
+    if ($("sb_botcheck") && $("sb_botcheck").value) return;
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("sb_err").textContent = "Please enter a valid email."; return; }
+    const fields = { Type: "IBC alert subscription", Name: name || "-", Email: email, Company: org || "-", Sectors: sectors || "(all sectors)", Source: "KCM IBC Finder" };
+    const subject = "KCM IBC Finder — alert subscription: " + email;
+    const key = window.ENGAGE_KEY || "";
+    if (key) {
+      try {
+        const res = await fetch("https://api.web3forms.com/submit", { method: "POST", headers: { "content-type": "application/json", Accept: "application/json" }, body: JSON.stringify({ access_key: key, subject, from_name: name || email, replyto: email, ...fields }) });
+        const j = await res.json();
+        if (j.success) { $("sb_ok").textContent = "Subscribed — we'll alert you. Thank you."; setTimeout(() => closeModal("subscribeModal"), 1600); }
+        else $("sb_err").textContent = "Could not subscribe: " + (j.message || "error") + ".";
+      } catch (e) { $("sb_err").textContent = "Network error — please try again."; }
+    } else {
+      const to = (DATA && DATA.contact_email) || "mna.advisory@kcmehta.com";
+      const body = Object.entries(fields).map(([k, x]) => k + ": " + x).join("\n");
+      window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      $("sb_ok").textContent = "Opening your email app…";
+    }
+  }
+
   function render() {
     if (!DATA || !$("list")) return;
     let rows = DATA.opportunities.slice();
@@ -238,9 +316,12 @@
     if (fStage) rows = rows.filter(o => fStage === "liq" ? o.target.is_liq : !o.target.is_liq);
     if (fSector) rows = rows.filter(o => (o.target.sector || "").toLowerCase().includes(fSector.toLowerCase()));
     if (fMatched) rows = rows.filter(o => (o.match_count || 0) > 0);
-    if ($("fClear")) $("fClear").style.display = (fStage || fSector || fMatched) ? "inline-block" : "none";
+    if (fSoon) rows = rows.filter(o => { const d = nextDeadlineDays(o.target); return d !== null && d <= 14; });
+    if (fNew) rows = rows.filter(o => isNew(o.target));
+    if ($("fClear")) $("fClear").style.display = (fStage || fSector || fMatched || fSoon || fNew) ? "inline-block" : "none";
 
     if (sortMode === "new") rows.sort((a, b) => announceTs(b.target) - announceTs(a.target));
+    else if (sortMode === "deadline") rows.sort((a, b) => { const va = nextDeadlineDays(a.target) ?? 99999, vb = nextDeadlineDays(b.target) ?? 99999; return va - vb; });
     else if (sortMode === "bid") rows.sort((a, b) => { const va = bidDays(a.target) ?? -1, vb = bidDays(b.target) ?? -1; return vb - va; });
     else rows.sort((a, b) => (b.matches?.[0]?.score ?? b.match_count ?? 0) - (a.matches?.[0]?.score ?? a.match_count ?? 0));
 
@@ -263,7 +344,7 @@
       return `<div class="opp" style="animation-delay:${i * 40}ms">
         <div class="opp-head">
           <div class="opp-id">
-            <div class="opp-name">${esc(t.name)} <span class="stagechip ${si.cls}">${si.label}${t.is_liq ? "" : (bd !== null ? " · ~" + bd + "d to bid" : "")}</span></div>
+            <div class="opp-name">${esc(t.name)} <span class="stagechip ${si.cls}">${si.label}${t.is_liq ? "" : (bd !== null ? " · ~" + bd + "d to bid" : "")}</span>${isNew(t) ? '<span class="badge-new">NEW</span>' : ""}</div>
             <div class="vchain"><b>Sector ·</b> ${esc(t.sector || "inferred from filing")}</div>
             <div class="applicant">Applicant: ${esc(t.applicant || "—")}</div>
             ${profileBlock(t)}
@@ -305,7 +386,7 @@
     DATA = data;
     applyBrand(); setSrc(); renderTrackRecord(); populateSectors();
     if (typeof CORE.afterLoad === "function") CORE.afterLoad(DATA);  // master recomputes matches here
-    renderStats(); render();
+    renderStats(); renderInsights(); renderSectorChips(); render();
   }
   async function refresh() {
     const b = $("refreshBtn"); if (b) { b.classList.add("spinning"); b.disabled = true; }
@@ -316,15 +397,19 @@
 
   function wireControls() {
     const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
-    const setSort = (mode) => { sortMode = mode; ["sbNew","sbBid","sbFit"].forEach(id => { const e = $(id); if (e) e.classList.toggle("on", id === ({new:"sbNew",bid:"sbBid",fit:"sbFit"})[mode]); }); resetPaging(); render(); };
+    const SMAP = { new: "sbNew", deadline: "sbDeadline", bid: "sbBid", fit: "sbFit" };
+    const setSort = (mode) => { sortMode = mode; Object.values(SMAP).forEach(id => { const e = $(id); if (e) e.classList.toggle("on", id === SMAP[mode]); }); resetPaging(); render(); };
     on("sbNew", "onclick", () => setSort("new"));
+    on("sbDeadline", "onclick", () => setSort("deadline"));
     on("sbBid", "onclick", () => setSort("bid"));
     on("sbFit", "onclick", () => setSort("fit"));
     on("search", "oninput", (e) => { q = e.target.value.trim(); resetPaging(); render(); });
     on("fStage", "onchange", (e) => { fStage = e.target.value; resetPaging(); render(); });
-    on("fSector", "onchange", (e) => { fSector = e.target.value; resetPaging(); render(); });
+    on("fSector", "onchange", (e) => { fSector = e.target.value; resetPaging(); render(); renderSectorChips(); });
     on("fMatched", "onclick", () => { fMatched = !fMatched; $("fMatched").classList.toggle("on", fMatched); resetPaging(); render(); });
-    on("fClear", "onclick", () => { fStage = fSector = ""; fMatched = false; if ($("fStage")) $("fStage").value = ""; if ($("fSector")) $("fSector").value = ""; if ($("fMatched")) $("fMatched").classList.remove("on"); resetPaging(); render(); });
+    on("fSoon", "onclick", () => { fSoon = !fSoon; $("fSoon").classList.toggle("on", fSoon); resetPaging(); render(); });
+    on("fNew", "onclick", () => { fNew = !fNew; $("fNew").classList.toggle("on", fNew); resetPaging(); render(); });
+    on("fClear", "onclick", () => { fStage = fSector = ""; fMatched = fSoon = fNew = false; ["fStage","fSector"].forEach(i => { if ($(i)) $(i).value = ""; }); ["fMatched","fSoon","fNew"].forEach(i => { if ($(i)) $(i).classList.remove("on"); }); resetPaging(); render(); renderSectorChips(); });
   }
 
   // ---- public API ----
@@ -335,6 +420,7 @@
     getData: () => DATA,
     render, resetPaging, refresh, matchRow,
     openEngage, submitEngage,
+    toggleSector, openSubscribe, submitSubscribe,
     async init(opts = {}) {
       Object.assign(CFG, opts);
       if (opts.brand) CFG.brand = opts.brand;

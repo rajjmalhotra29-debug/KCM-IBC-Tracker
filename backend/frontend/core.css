@@ -84,6 +84,45 @@ a{color:inherit}
 .trcard .trk{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;margin-bottom:4px}
 .trcard .trsub{font-size:11px;opacity:.8;margin-top:3px}
 
+/* hero */
+.hero{margin:20px 0 6px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(176,130,47,.10),transparent 70%);pointer-events:none}
+.hero h1{font-family:'Fraunces',serif;font-size:30px;font-weight:600;line-height:1.18;color:var(--ink);max-width:760px}
+.hero h1 span{color:var(--teal-d)}
+.hero p{font-size:14px;color:var(--ink2);margin-top:10px;max-width:740px;line-height:1.6}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+@media(max-width:560px){.hero h1{font-size:23px}}
+
+/* insights dashboard strip */
+.insights{display:grid;grid-template-columns:1.2fr 1fr .8fr;gap:14px;margin:14px 0 4px}
+@media(max-width:760px){.insights{grid-template-columns:1fr}}
+.ins{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.ins h4{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.ibar{display:flex;align-items:center;gap:9px;margin:6px 0}
+.ibar .il{font-size:12px;color:var(--ink2);flex:none;width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
+.ibar .it{flex:1;height:8px;border-radius:5px;background:var(--line2);overflow:hidden}
+.ibar .it i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--amber),var(--teal))}
+.ibar .iv{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);flex:none;width:26px;text-align:right}
+.ins-big{display:flex;flex-direction:column;justify-content:center;height:100%;text-align:center}
+.ins-big .v{font-family:'Fraunces',serif;font-size:40px;font-weight:600;color:var(--teal);line-height:1}
+.ins-big .k{font-size:12px;color:var(--muted);margin-top:6px}
+.ins-split{display:flex;gap:8px;margin-top:6px}
+.ins-split .seg{flex:1;text-align:center;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:8px 4px}
+.ins-split .seg .sv{font-family:'Fraunces',serif;font-size:22px;font-weight:600}
+.ins-split .seg .sk{font-size:10px;color:var(--muted)}
+.ins-split .cirp .sv{color:var(--teal)} .ins-split .liq .sv{color:var(--red)}
+
+/* sector quick-chips */
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 2px;align-items:center}
+.chips .clbl{font-size:12px;color:var(--faint);margin-right:2px}
+.chip{font-size:12px;font-weight:600;color:var(--muted);background:var(--card);border:1px solid var(--line2);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--teal);color:var(--teal-d)}
+.chip.on{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-d);font-weight:700}
+.chip .cct{font-family:'JetBrains Mono',monospace;font-size:9px;opacity:.65;margin-left:3px}
+
+/* NEW badge */
+.badge-new{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:.08em;color:#fff;background:var(--green);border-radius:5px;padding:2px 6px;margin-left:8px;vertical-align:middle}
+
 .prov{display:flex;gap:11px;align-items:flex-start;background:var(--teal-soft);border:1px solid #9fccc4;border-radius:12px;padding:13px 16px;margin:22px 0 6px;font-size:13px;color:var(--teal-d);line-height:1.55}
 .prov .live{flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;color:#fff;background:var(--teal);border-radius:20px;padding:3px 10px;margin-top:1px}
 code{font-family:'JetBrains Mono',monospace;font-size:.92em;background:#ffffffaa;border:1px solid var(--line2);border-radius:5px;padding:1px 5px}
