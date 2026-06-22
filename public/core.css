@@ -158,6 +158,11 @@ code{font-family:'JetBrains Mono',monospace;font-size:.92em;background:#ffffffaa
 .engage-q{font-size:12.5px;color:var(--muted)}
 .engage-btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#fff;background:linear-gradient(180deg,var(--amber),#9c6a1f);border:none;border-radius:8px;padding:8px 14px;text-decoration:none;transition:filter .15s}
 .engage-btn:hover{filter:brightness(1.06)}
+.cardtools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.ctbtn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border-radius:8px;padding:7px 13px;border:1px solid var(--teal);color:var(--teal-d);background:var(--teal-soft);transition:all .15s}
+.ctbtn:hover{background:var(--teal);color:#fff}
+.ctbtn.memo{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
+.ctbtn.memo:hover{background:var(--amber);color:#fff}
 .matches{padding:4px 20px 18px}
 .mlabel{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:14px 0 4px}
 .match{display:flex;gap:18px;padding:15px 14px;border-radius:11px;margin-top:8px;border-left:3px solid var(--grey);background:var(--card2)}

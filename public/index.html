@@ -74,7 +74,7 @@
 window.ENGAGE_FORM_URL = "";
 window.ENGAGE_KEY = "";
 </script>
-<script src="core.js?v=2"></script>
-<script>CORE.init({ brand: "kcm", dataUrl: "data.json" });</script>
+<script src="core.js?v=3"></script>
+<script>CORE.init({ brand: "kcm", dataUrl: (window.DATA_URL || "data.json"), fallbackUrl: "data.json" });</script>
 </body>
 </html>

@@ -92,7 +92,8 @@ def main() -> None:
                 r"D:\OneDrive - K C Mehta & Co LLP\Mehta, Suril- KCM's files - General but confidential\@Research\IBC Companies Search\KCM_IBC_Client_Master.xlsx")
     if not xlsx.exists():
         raise SystemExit(f"Client-master Excel not found: {xlsx}\nSet MASTER_XLSX to its path.")
-    feed_url = (os.environ.get("MASTER_FEED_URL") or settings.master_feed_url or "").strip() or "data.json"
+    feed_url = ((os.environ.get("MASTER_FEED_URL") or settings.master_feed_url or "").strip()
+                or settings.live_feed_url or "data.json")
 
     clients = read_clients(xlsx)
     blob = encrypt_obj({"clients": clients}, password)

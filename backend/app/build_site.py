@@ -63,9 +63,18 @@ def main() -> None:
         found, new = ingest(db, adapter, settings.source_url, rematch=False, prune=False)
 
         dash = build_dashboard(db, None)            # open access, no user, no matches
-        # latest-N, newest first
+        # newest first, then collapse repeat announcements of the SAME company
+        # (IBBI lists a corporate debtor under several public announcements) so each
+        # company shows once — its latest announcement — then take the latest N.
         dash.opportunities.sort(key=_ann, reverse=True)
-        dash.opportunities = dash.opportunities[:PUBLIC_LIMIT]
+        seen, uniq = set(), []
+        for o in dash.opportunities:
+            key = (o.target.name or "").strip().upper()
+            if key in seen:
+                continue
+            seen.add(key)
+            uniq.append(o)
+        dash.opportunities = uniq[:PUBLIC_LIMIT]
         # aggregate track record only — never expose client/target names publicly
         dash.track_record.deals = []
         dash.track_record.locked = False
@@ -90,11 +99,11 @@ def main() -> None:
         review.mkdir(parents=True, exist_ok=True)
         chtml = (FRONTEND / "client.html").read_text(encoding="utf-8")
         chtml = chtml.replace('window.ENGAGE_FORM_URL = "";', f'window.ENGAGE_FORM_URL = "{settings.engage_form_url}";')
-        chtml = chtml.replace('window.ENGAGE_KEY = "";', f'window.ENGAGE_KEY = "{settings.engage_key}";')
+        chtml = chtml.replace('window.ENGAGE_KEY = "";', f'window.ENGAGE_KEY = "{settings.engage_key}"; window.DATA_URL = "{settings.live_feed_url}";')
         chtml = chtml.replace('<link rel="stylesheet" href="core.css?v=2">',
                               "<style>\n" + (FRONTEND / "core.css").read_text(encoding="utf-8") + "\n</style>")
         feed_json = json.dumps(dash.model_dump(), ensure_ascii=False)
-        chtml = chtml.replace('<script src="core.js?v=2"></script>',
+        chtml = chtml.replace('<script src="core.js?v=3"></script>',
                               "<script>window.EMBEDDED_FEED=" + feed_json + ";</script>\n<script>\n"
                               + (FRONTEND / "core.js").read_text(encoding="utf-8") + "\n</script>")
         (review / "KCM-IBC-Finder-PUBLIC.html").write_text(chtml, encoding="utf-8")

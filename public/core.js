@@ -248,8 +248,9 @@
 
     $("list").innerHTML = visible.map((o, i) => {
       const t = o.target, si = stageInfo(t), bd = bidDays(t);
+      const tools = (CORE.showMatches && typeof CORE.cardTools === "function") ? CORE.cardTools(o) : "";
       const matchesHtml = CORE.showMatches
-        ? `<div class="matches">${(o.matches && o.matches.length)
+        ? `<div class="matches">${tools}${(o.matches && o.matches.length)
             ? `<div class="mlabel">Matched clients · ${o.matches.length} (ranked by fit)</div>` + o.matches.map(matchRow).join("")
             : `<div class="nomatch">No company in your client master matches this opportunity yet.</div>`}</div>`
         : "";
@@ -334,6 +335,9 @@
       ensureEngageModal();
       if ($("loadMore")) $("loadMore").querySelector("button").onclick = loadMore;
       await load();
+      // auto-refresh the feed every 20 minutes while the page is open
+      const ms = opts.autoRefreshMs || 20 * 60 * 1000;
+      if (ms) setInterval(() => { load(); }, ms);
     },
   };
   window.CORE = CORE;

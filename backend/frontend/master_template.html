@@ -88,6 +88,45 @@
       <button class="btn" onclick="MASTER.exportBlob()">⤓ Export (encrypted)</button>
       <label class="btn">⤒ Import<input type="file" accept=".json" style="display:none" onchange="MASTER.importBlob(this)"></label>
       <button class="btn" onclick="MASTER.openPassword()">Change password</button>
+      <button class="btn" onclick="MASTER.openAiSettings()">AI settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI SETTINGS -->
+<div class="modal" id="aiSettingsModal">
+  <div class="sheet">
+    <div class="mhead"><div><h3>AI Deal Analyst</h3><div class="sub">Your Anthropic key, stored encrypted on this device — never in the file.</div></div><button class="x" onclick="CORE.closeModal('aiSettingsModal')">✕</button></div>
+    <div class="field"><label>Anthropic API key (sk-ant-…)</label><input id="ai_key" type="password" placeholder="sk-ant-..."></div>
+    <div class="field"><label>Model</label>
+      <select id="ai_model_sel">
+        <option value="claude-sonnet-4-6">Claude Sonnet 4.6 — balanced (recommended)</option>
+        <option value="claude-opus-4-8">Claude Opus 4.8 — highest quality</option>
+        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — fastest / cheapest</option>
+      </select>
+    </div>
+    <button class="btn primary" style="width:100%;justify-content:center" onclick="MASTER.saveAiSettings()">Save</button>
+    <div class="ok" id="aiOk"></div>
+    <div class="sub" style="margin-top:6px;font-size:11px">Get a key at console.anthropic.com. Analysis runs per company on demand (a few cents each).</div>
+  </div>
+</div>
+
+<!-- AI ANALYSIS RESULT -->
+<div class="modal" id="aiModal">
+  <div class="sheet lg">
+    <div class="mhead"><div><h3>🤖 AI Deal Analysis</h3><div class="sub" id="aiTitle">—</div></div><button class="x" onclick="CORE.closeModal('aiModal')">✕</button></div>
+    <div id="aiBody"></div>
+  </div>
+</div>
+
+<!-- IC MEMO -->
+<div class="modal" id="memoModal">
+  <div class="sheet lg">
+    <div class="mhead"><div><h3>Investment Committee Note</h3><div class="sub">Print to PDF or download as Word</div></div><button class="x" onclick="CORE.closeModal('memoModal')">✕</button></div>
+    <div id="memoBody" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px;max-height:55vh;overflow:auto"></div>
+    <div style="display:flex;gap:9px;margin-top:12px">
+      <button class="btn primary" onclick="MASTER.printMemo()">🖨 Print / Save as PDF</button>
+      <button class="btn" onclick="MASTER.downloadMemoDoc()">⤓ Download as Word (.doc)</button>
     </div>
   </div>
 </div>

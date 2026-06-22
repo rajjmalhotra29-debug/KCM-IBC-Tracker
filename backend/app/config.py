@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     source_url: str = "https://www.ibbi.gov.in/en/public-announcement"
     source_adapter: str = "ibbi"  # "ibbi" | "generic"
 
+    # Live feed URL (auto-updated every ~20 min by the GitHub Action). Downloaded
+    # standalone files + the master file pull from here so they stay current.
+    live_feed_url: str = "https://raw.githubusercontent.com/rajjmalhotra29-debug/KCM-IBC-Tracker/main/public/data.json"
+
     # How many IBBI pages (20 records each) to walk per scrape.
     scrape_max_pages: int = 12
     # Retention window: keep a record if it was announced within this many days
