@@ -1,56 +1,69 @@
-# Jarvis — IBC Origination Desk (K C Mehta & Co)
+# KCM IBC Finder (K C Mehta & Co)
 
-A **freemium web app** that turns India's Insolvency & Bankruptcy (IBC) pipeline
-into deal flow for cash-rich acquirers. Styled as the **Jarvis** origination desk.
+Two deliverables that turn India's Insolvency & Bankruptcy (IBC) pipeline into
+deal flow — sharing one daily IBBI data feed:
 
-- **Free / anonymous** — anyone browses the live opportunity feed: each distressed
-  company (CIRP / liquidation) shown as a card with a **Form G / process tracker**,
-  a **financial snapshot** panel, claims-deadline countdown, and "Find on IBBI".
-  The ranked client matches are **locked** (count advertised, details hidden).
-- **Paid tier** — the **ranked client matches** unlock: each shows synergy fit
-  (**backward / forward / horizontal**), a 0–100 score bar, the keywords matched,
-  and three gates — **29A eligibility · KCM reach · data confidence**.
+1. **`client.html` — PUBLIC viewer.** A free, daily-updated substitute for the IBBI
+   website: the latest 100 companies in IBC (newest first), each with a Form G /
+   process tracker, financial-snapshot panel, claims countdown, research links and
+   an "Engage KCM" button. **Search + filters.** Contains **no client data and no
+   fit-checking**. Safe to publish; linked from kcmehta.com.
+2. **`master.html` — CONFIDENTIAL, KCM-only.** Everything the client file has, **plus**
+   the firm's 2,056-company client master (AES-256-GCM **encrypted**, unlocked by the
+   master password) and **in-browser merger-fit matching** of those clients against the
+   live IBC companies — synergy fit, score, and 29A / reach / confidence gates. Add /
+   edit clients (no limit) and change the password in Settings. Kept private; never published.
 
-The dashboard renders from `GET /api/dashboard`; matches are the firm's "house
-book" (MatchResults against the admin-owned client roster), gated by tier.
-
-> Example: distressed *Martina Bio Genics* (pharma) → the engine surfaces Cadila,
-> Zydus and Parul Chemicals for backward / horizontal integration.
+> Security: the client master exists only as ciphertext inside `master.html`; the
+> password is never stored in the file. `client.html`/`data.json` contain zero client rows.
 
 ## Architecture
 
 ```
+GitHub Action (daily)  ──scrape IBBI──►  site/data.json (IBBI companies only, latest 100)
+                                              │
+                 ┌────────────────────────────┴───────────────────────────┐
+   client.html (PUBLIC, on Pages)                 master.html (PRIVATE, local, KCM only)
+   fetches data.json                              fetches data.json + embedded ENCRYPTED
+   core.css + core.js                             client master → password unlock →
+   no client data, no matches                     core.css/core.js + master.js (matching)
+
 backend/
   app/
-    config.py        env-driven settings (AI & payments off until keys added)
-    database.py      SQLAlchemy + SQLite (swap DATABASE_URL for Postgres)
-    models.py        User, Target, Buyer, MatchResult
-    security.py      JWT auth + freemium paywall gate (require_paid)
-    extractor/       pluggable source scrapers — ibbi.py (default), generic.py
-    matching/        rules.py (cheap filter) + ai.py (Claude) + engine.py (hybrid)
-    importer.py      Excel/CSV buyer import
-    routers/         auth, public (feed), buyers, matching, billing
-    seed.py          demo users + targets + buyers
-  frontend/          single-page UI (index.html + app.js, Tailwind CDN)
+    build_site.py    PUBLIC build → site/ (data.json + client.html + core.js/css)
+    build_master.py  CONFIDENTIAL build → master/master.html (reads Excel, encrypts)
+    extractor/ibbi.py  multi-page IBBI scraper
+    matching/rules.py  rule engine (ported to JS in master.js)
+    routers/, config.py, models.py …   (FastAPI app — optional dynamic/dev + future freemium)
+  frontend/
+    core.css, core.js          shared by both files
+    client.html                public viewer
+    master.js, master_template.html   master layer (crypto + matching + settings)
+data/deals.json                aggregate track record (no names) for the public feed
 ```
 
-## Two ways to run it
+## Build & run
 
-**A. Dynamic (local dev / future freemium)** — the full FastAPI app with logins,
-live refresh, admin editing:
+**Public (client) site** — what gets deployed:
 ```powershell
-./run.ps1          # from the project root → http://127.0.0.1:8000
+cd backend; ../.venv/Scripts/python.exe -m app.build_site      # → ../site/ (data.json + client.html)
+cd ../site; ../.venv/Scripts/python.exe -m http.server 8001    # preview → http://127.0.0.1:8001
 ```
 
-**B. Static (free GitHub hosting — the current launch path)** — a daily GitHub
-Action runs `python -m app.build_site` (scrape + match + AI), writes `site/data.json`,
-and GitHub Pages serves the frontend. Free, no server. Build locally to preview:
+**Confidential master file** — built locally, kept private:
 ```powershell
-cd backend; ../.venv/Scripts/python.exe -m app.build_site   # writes ../site/
-cd ../site; ../.venv/Scripts/python.exe -m http.server 8001  # → http://127.0.0.1:8001
+# set MASTER_PASSWORD (and optionally MASTER_XLSX) in backend/.env first
+cd backend; ../.venv/Scripts/python.exe -m app.build_master    # → ../master/master.html
 ```
-Full deploy steps (repo, Pages, the Anthropic secret, custom domain, linking from
+Open `master/master.html` in a browser → click **Unlock client matching** → enter the
+master password (held in `backend/.env`, never written into the file) → matches appear.
+
+Full deploy steps (repo, Pages, Anthropic secret, custom domain, linking from
 kcmehta.com) are in **[DEPLOY.md](DEPLOY.md)**.
+
+The original dynamic FastAPI app (`./run.ps1` → http://127.0.0.1:8000, with `index.html`
+/ `app.js`, logins and the freemium tier) is retained for development and a future paid
+backend, but the two HTML files above are the current deliverables.
 
 Demo logins (created by the seed):
 - **Desk admin** (owns the client book, can refresh the feed + recompute matches):

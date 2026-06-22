@@ -62,6 +62,7 @@ class Target(Base):
     claims_by: Mapped[str] = mapped_column(String(50), default="")    # claims deadline (display)
     claims_days: Mapped[int | None] = mapped_column(Integer, nullable=True)  # days to claims (snapshot)
     form_g_by: Mapped[str | None] = mapped_column(String(50), nullable=True)  # expected Form G (~75d)
+    pa_pdf: Mapped[str] = mapped_column(String(1000), default="")             # Form A public-announcement PDF
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 

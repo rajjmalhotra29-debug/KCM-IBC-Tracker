@@ -13,3 +13,9 @@ tools/ingest.log
 
 # generated static site (rebuilt by the GitHub Action each run)
 site/
+
+# confidential master file (built locally, never published)
+master/
+
+# local single-file review builds
+review/

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KCM IBC Finder · Master · K C Mehta &amp; Co</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>/*__CORE_CSS__*/</style>
+</head>
+<body data-brand="kcm">
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="glyph"><span id="glyphLetter">K</span></div>
+      <div>
+        <div class="wordmark"><span id="brandName">KCM IBC Finder</span><span class="demo-pill gold" id="tierPill">MASTER</span></div>
+        <div class="tagline" id="tagline">Confidential master — client-fit matching against live IBC companies</div>
+        <div class="firmtag">K C Mehta &amp; Co · IBC Origination · Internal</div>
+      </div>
+    </div>
+    <div class="refresh-zone">
+      <div class="src snap" id="src"><span class="d"></span><span id="srctxt">loading…</span></div>
+      <div class="authrow" id="authRow"></div>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div id="trackRecord"></div>
+
+  <div class="prov">
+    <span class="live">● MASTER</span>
+    <div>Confidential KCM file. The IBBI company feed is public and updated daily; your <b>client master is encrypted</b>
+    inside this file and only decrypts with the master password. Once unlocked, every IBC company is matched against your
+    client master in your browser — nothing leaves this device. Use <b>Client master</b> to add/edit clients or change the password.</div>
+  </div>
+
+  <div class="sortrow">
+    <span class="sortlbl">Sort:</span>
+    <button class="sortb on" id="sbNew">Newest first</button>
+    <button class="sortb" id="sbBid">Days to bid</button>
+    <button class="sortb" id="sbFit">Best fit</button>
+    <input class="search" id="search" placeholder="Search company / sector / applicant…" />
+  </div>
+  <div class="sortrow">
+    <span class="sortlbl">Filter:</span>
+    <select class="fsel" id="fStage"><option value="">All stages</option><option value="cirp">CIRP only</option><option value="liq">Liquidation only</option></select>
+    <select class="fsel" id="fSector"><option value="">All sectors</option></select>
+    <button class="sortb" id="fMatched">Matched only</button>
+    <button class="sortb" id="fClear" style="display:none">✕ Clear</button>
+  </div>
+  <div class="hidden-note" id="hiddenNote"></div>
+  <div id="list"></div>
+  <div id="loadMore" style="display:none;text-align:center;margin-top:18px">
+    <button class="btn">Load more</button>
+  </div>
+
+  <div class="footnote">
+    <b>Confidential — K C Mehta &amp; Co.</b> Matching is rule-based (sector / products / value-chain keyword overlap)
+    and runs entirely in your browser against the public IBBI feed. Form&nbsp;G windows are estimated (≈75 days after CIRP
+    admission). Client data is stored only as encrypted ciphertext; the password is never saved. Do not share this file.
+  </div>
+</div>
+
+<!-- UNLOCK MODAL -->
+<div class="modal" id="unlockModal">
+  <div class="sheet" style="max-width:400px">
+    <div class="lockwrap" style="margin:0;border:none;box-shadow:none;padding:6px 2px">
+      <div class="lockico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <h2>Unlock client matching</h2>
+      <p>Enter the master password to decrypt your client list and match it against the IBC companies.</p>
+      <input id="mpw" type="password" placeholder="Master password" onkeydown="if(event.key==='Enter')MASTER.doUnlock()" />
+      <button class="btn primary" style="width:100%;justify-content:center" onclick="MASTER.doUnlock()">Unlock</button>
+      <div class="err" id="mpwErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal" id="settingsModal">
+  <div class="sheet lg">
+    <div class="mhead"><div><h3>Client master</h3><div class="sub"><span id="clientCount">—</span> · matched against the live IBC feed</div></div><button class="x" onclick="CORE.closeModal('settingsModal')">✕</button></div>
+    <input class="search" id="clientSearch" style="max-width:none;margin-bottom:10px" placeholder="Search the client master…" oninput="MASTER.searchClients(this.value)" />
+    <div class="clientlist" id="clientList"></div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn primary" onclick="MASTER.openClientForm(-1)">+ Add client</button>
+      <button class="btn" onclick="MASTER.exportBlob()">⤓ Export (encrypted)</button>
+      <label class="btn">⤒ Import<input type="file" accept=".json" style="display:none" onchange="MASTER.importBlob(this)"></label>
+      <button class="btn" onclick="MASTER.openPassword()">Change password</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT FORM -->
+<div class="modal" id="clientFormModal">
+  <div class="sheet lg">
+    <div class="mhead"><div><h3 id="cfTitle">Add client</h3></div><button class="x" onclick="CORE.closeModal('clientFormModal')">✕</button></div>
+    <div class="field"><label>Company name *</label><input id="cf_name" /></div>
+    <div class="row2">
+      <div class="field"><label>Sector / industry</label><input id="cf_sector" /></div>
+      <div class="field"><label>Value-chain position</label><input id="cf_value_chain" /></div>
+    </div>
+    <div class="field"><label>Products / services</label><textarea id="cf_products"></textarea></div>
+    <div class="field"><label>End-markets / customers</label><textarea id="cf_customers_served"></textarea></div>
+    <div class="field"><label>Synergy directions</label><textarea id="cf_synergy_directions"></textarea></div>
+    <div class="field"><label>Acquirer-fit / thesis</label><textarea id="cf_acquisition_thesis"></textarea></div>
+    <div class="row2">
+      <div class="field"><label>29A flags</label><input id="cf_eligibility_29a" /></div>
+      <div class="field"><label>Confidence</label><input id="cf_confidence" placeholder="HIGH / MEDIUM / LOW" /></div>
+    </div>
+    <div class="field"><label>Decision locus / reach</label><input id="cf_reach" /></div>
+    <div class="field"><label>Notes</label><textarea id="cf_notes"></textarea></div>
+    <button class="btn primary" style="width:100%;justify-content:center" onclick="MASTER.saveClient()">Save</button>
+    <div class="err" id="cfErr"></div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="modal" id="pwModal">
+  <div class="sheet">
+    <div class="mhead"><div><h3>Change master password</h3><div class="sub">Enter the current password twice, then the new one.</div></div><button class="x" onclick="CORE.closeModal('pwModal')">✕</button></div>
+    <div class="field"><label>Current password</label><input id="pwCur1" type="password" /></div>
+    <div class="field"><label>Current password (again)</label><input id="pwCur2" type="password" /></div>
+    <div class="field"><label>New password</label><input id="pwNew" type="password" /></div>
+    <button class="btn primary" style="width:100%;justify-content:center" onclick="MASTER.changePassword()">Update password</button>
+    <div class="err" id="pwErr"></div>
+    <div class="ok" id="pwOk"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.DATA_URL = "__DATA_URL__";
+window.ENGAGE_FORM_URL = "__ENGAGE_FORM_URL__";
+window.ENGAGE_KEY = "__ENGAGE_KEY__";
+window.EMBEDDED_FEED = __FEED__;
+window.MASTER_BLOB = __BLOB__;
+</script>
+<script>/*__CORE_JS__*/</script>
+<script>/*__MASTER_JS__*/</script>
+</body>
+</html>

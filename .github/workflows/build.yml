@@ -1,40 +1,39 @@
-name: Build & deploy KCM IBC Finder
+name: Refresh IBBI feed (daily) → Vercel
+
+# Scrapes IBBI, rebuilds the public feed, and commits it to public/.
+# Vercel is connected to this repo and auto-deploys on every push, so each
+# refresh goes live automatically. This is the "GitHub daily refresh + Vercel
+# hosting" setup.
 
 on:
   schedule:
-    - cron: "30 1 * * *"      # 07:00 IST daily — scrape IBBI, match, publish
-  workflow_dispatch: {}         # manual "Run workflow" button
+    - cron: "30 1 * * *"        # 07:00 IST daily
+  workflow_dispatch: {}          # manual "Run workflow" button
   push:
     branches: [main]
-    paths:
-      - "data/**"               # rebuild when the client book / deals change
+    paths:                       # rebuild when code/data change (NOT public/, avoids a loop)
       - "backend/**"
+      - "data/**"
       - ".github/workflows/**"
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: refresh
   cancel-in-progress: true
 
 jobs:
-  build-deploy:
+  refresh:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     env:
       ACCESS_MODE: open
       BRAND: kcm
       SOURCE_URL: https://ibbi.gov.in/public-announcement
       SOURCE_ADAPTER: ibbi
-      # Change this to your preferred leads inbox (or set a repo variable).
-      CONTACT_EMAIL: Suril.mehta@kcmehta.com
-      # AI turns on automatically once this secret is set (Settings → Secrets).
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CONTACT_EMAIL: mna.advisory@kcmehta.com
+      ENGAGE_KEY: ${{ secrets.ENGAGE_KEY }}               # Web3Forms key (optional)
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # AI ranker (optional)
       PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4
@@ -47,14 +46,19 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Build static site (scrape + match + AI)
+      - name: Build the public feed
         working-directory: backend
         run: python -m app.build_site
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+      - name: Publish to public/
+        run: |
+          rm -rf public && mkdir -p public
+          cp -r site/* public/
 
-      - id: deploy
-        uses: actions/deploy-pages@v4
+      - name: Commit refreshed feed (Vercel auto-deploys)
+        run: |
+          git config user.name "kcm-ibc-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add public
+          git diff --cached --quiet || git commit -m "Daily IBBI refresh [skip ci]"
+          git push

@@ -141,6 +141,14 @@ class IBBIAdapter(SourceAdapter):
                 if d:
                     form_g = (d + timedelta(days=FORM_G_DAYS)).strftime("%d %b %Y")
 
+            # Form A / public-announcement PDF — the URL is inside the cell's onclick.
+            pa_pdf = ""
+            for a in tr.find_all("a", onclick=True):
+                m = re.search(r"https?://[^'\")\s]+\.pdf", a.get("onclick", ""), re.I)
+                if m:
+                    pa_pdf = m.group(0).strip().replace("ibbi.gov.in//", "ibbi.gov.in/")
+                    break
+
             out.append(ExtractedCompany(
                 name=name,
                 sector=_infer_sector(name),
@@ -155,6 +163,7 @@ class IBBIAdapter(SourceAdapter):
                 stage_label=pa_type or ("Liquidation Process" if is_liq else "Corporate Insolvency Resolution Process"),
                 stage_class=stage_class,
                 form_g_by=form_g,
+                pa_pdf=pa_pdf,
                 description=" | ".join(cells)[:1000],
                 source_url=url,
             ))

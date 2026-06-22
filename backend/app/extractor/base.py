@@ -35,6 +35,7 @@ class ExtractedCompany:
     admit: str = ""
     claims_by: str = ""
     form_g_by: str | None = None
+    pa_pdf: str = ""          # Form A / public-announcement PDF (direct URL)
     extra: dict = field(default_factory=dict)
 
     def source_ref(self) -> str:

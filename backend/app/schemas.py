@@ -48,6 +48,7 @@ class TargetOut(BaseModel):
     claims_by: str = ""
     claims_days: int | None = None
     form_g_by: str | None = None
+    pa_pdf: str = ""
 
 
 # ---------- Buyer ----------

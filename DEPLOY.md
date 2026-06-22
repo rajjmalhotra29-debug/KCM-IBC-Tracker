@@ -1,29 +1,35 @@
-# Deploying KCM IBC Finder — free, on GitHub
+# Deploying KCM IBC Finder
 
-The site is a **static frontend** plus a **daily GitHub Action** that scrapes IBBI,
-runs the matching (and AI, if enabled), and publishes the data. No server, no cost.
+Two deliverables:
+- **`client.html` (PUBLIC)** — deployed free on GitHub Pages; a daily GitHub Action
+  scrapes IBBI and publishes `data.json`. **No client data.** This is what's linked from kcmehta.com.
+- **`master.html` (CONFIDENTIAL)** — built locally with `app.build_master`, kept private
+  by KCM. **Never pushed to GitHub.**
 
 ```
-GitHub Action (daily, free)  ->  builds site/data.json  ->  GitHub Pages serves it
+GitHub Action (daily, free)  ->  site/data.json (+ client.html)  ->  GitHub Pages   [PUBLIC]
+app.build_master (local)     ->  master/master.html (encrypted client list)         [PRIVATE — keep off the web]
 ```
 
 ## What's in the repo
 
 | Path | Role |
 |------|------|
-| `backend/` | the app + `app/build_site.py` (the build script the Action runs) |
-| `data/buyers.json` | the **client book** matching runs against — edit this to add/remove clients |
-| `data/deals.json` | the **track record** (mandates + FMV) — edit this to update the numbers |
-| `.github/workflows/build.yml` | the daily build + Pages deploy |
-| `site/` | generated output (not committed; the Action rebuilds it) |
+| `backend/app/build_site.py` | PUBLIC build the daily Action runs (IBBI feed + client.html) |
+| `backend/app/build_master.py` | LOCAL build for the confidential master file |
+| `backend/frontend/` | `core.css`, `core.js` (shared), `client.html`, `master.js`, `master_template.html` |
+| `data/deals.json` | aggregate **track record** (mandate count + ₹ value) shown on the public site — no names |
+| `.github/workflows/build.yml` | the daily PUBLIC build + Pages deploy |
+| `site/`, `master/` | generated output — **gitignored**, never committed |
 
-## One-time setup (≈10 minutes)
+> The client-master Excel and `master/master.html` are **never** in the repo. The master
+> file's client list is AES-256-GCM encrypted; the password lives only in `backend/.env`
+> (gitignored) and the user's head.
 
-1. **Create a GitHub repo** (a **public** repo is simplest and gives unlimited free
-   Actions + Pages). Note: in the current *open* prototype the client matches and
-   deal values are shown publicly on the site by design — so a public repo exposes
-   nothing the site doesn't already. (Going *freemium* later moves that data behind
-   a paid backend.)
+## A. Deploy the PUBLIC client site (≈10 minutes)
+
+1. **Create a GitHub repo** (a **public** repo gives unlimited free Actions + Pages).
+   Safe: the published `data.json` contains only IBBI public companies — **no client data**.
 
 2. **Push this project** to the repo:
    ```bash
@@ -51,7 +57,26 @@ GitHub Action (daily, free)  ->  builds site/data.json  ->  GitHub Pages serves 
    `https://<you>.github.io/<repo>/`.
 
 It then **rebuilds automatically every day at 7:00 AM IST**, and also whenever you
-edit `data/buyers.json` or `data/deals.json` and push.
+edit `data/deals.json` and push.
+
+## B. The CONFIDENTIAL master file (never deployed)
+
+Built and used locally by KCM:
+
+1. Put the master password in `backend/.env` (gitignored): `MASTER_PASSWORD=...`
+   (optionally `MASTER_XLSX=<path to the client Excel>` and, after the public site is
+   live, `MASTER_FEED_URL=https://<you>.github.io/<repo>/data.json` so the master pulls
+   the latest IBBI feed; otherwise it uses the snapshot baked in at build time).
+2. Build it:
+   ```powershell
+   cd backend; ../.venv/Scripts/python.exe -m app.build_master   # → ../master/master.html
+   ```
+3. Keep `master/master.html` **private** — store it on your machine or SharePoint, not
+   on the web. Open it in a browser → **Unlock client matching** → enter the password.
+4. Re-run the build whenever the client Excel changes (or add clients in-app via Settings).
+
+The client list is AES-256-GCM encrypted inside the file; the password is never written
+to it. Even if the file leaked, the client data stays locked.
 
 ## Link it from kcmehta.com (your chosen integration)
 
@@ -70,13 +95,16 @@ To serve it at `ibc.kcmehta.com` instead:
 3. GitHub provisions HTTPS automatically.
 
 ## Updating content
-- **Add/remove a client:** edit `data/buyers.json`, commit, push → rebuilds.
-- **Add a closed mandate:** edit `data/deals.json`, commit, push → the track-record
-  numbers update.
-- **Force a refresh now:** Actions tab → Run workflow.
+- **Public track-record numbers:** edit `data/deals.json`, commit, push → site rebuilds
+  (aggregate only — no names appear publicly).
+- **Force a public refresh now:** Actions tab → Run workflow.
+- **Client master (private):** add/edit clients in `master.html` → Settings (persists in
+  your browser), or update the Excel and re-run `app.build_master`.
+- **Change the master password:** `master.html` → Settings → Change password (enter the
+  current password twice, then the new one).
 
 ## When you're ready to monetize (freemium)
-Logins + payments + private client data need a small always-on backend (the FastAPI
-app in `backend/` already does all of this — set `ACCESS_MODE=freemium`). Host it on
-a low-cost service (~$7/mo) and point the frontend at it. The codebase already
-supports both; nothing needs rewriting.
+Logins + payments + a hosted private backend need a small always-on server (the FastAPI
+app in `backend/` already supports this — `ACCESS_MODE=freemium`). Host it on a low-cost
+service (~$7/mo) when you charge for the matching. The two static files cover the free
+public viewer and the internal master today.

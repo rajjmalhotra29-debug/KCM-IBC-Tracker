@@ -32,8 +32,17 @@ class Settings(BaseSettings):
     # or "jarvis" (the original warm-cream desk). Both share one codebase.
     brand: str = "kcm"
 
-    # Where "Engage KCM on this asset" leads route (a mailto inbox).
-    contact_email: str = "Suril.mehta@kcmehta.com"
+    # Where "Engage KCM on this asset" enquiries route.
+    contact_email: str = "mna.advisory@kcmehta.com"
+    # Engage form delivery. Preferred: a Microsoft Form URL (M365-native) — use {ASSET}
+    # in the link to pre-fill the company name. Falls back to Web3Forms key, then mailto.
+    engage_form_url: str = ""
+    engage_key: str = ""
+
+    # --- Confidential master build (app.build_master) ---
+    master_password: str = ""      # encrypts the client list inside master.html (never stored in the file)
+    master_xlsx: str = ""          # path to KCM_IBC_Client_Master.xlsx (blank = default OneDrive path)
+    master_feed_url: str = ""      # Pages data.json URL the master pulls after deploy (blank = embedded snapshot)
 
     # --- Auth ---
     secret_key: str = "CHANGE-ME-IN-PRODUCTION-please-use-a-long-random-string"

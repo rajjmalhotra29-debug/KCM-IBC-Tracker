@@ -89,9 +89,10 @@ def refresh_targets(
     )
 
 
-def ingest(db: Session, adapter, src: str, rematch: bool = True) -> tuple[int, int]:
+def ingest(db: Session, adapter, src: str, rematch: bool = True, prune: bool = True) -> tuple[int, int]:
     """Scrape -> upsert targets -> AI-enrich new ones -> recompute house-book matches
-    -> prune stale records. Returns (found, new). Shared by route + daily job."""
+    -> prune stale records. Returns (found, new). Shared by route + daily job.
+    Set prune=False for the public build (which keeps the latest-N by date instead)."""
     from ..matching import ai  # local import keeps optional dep lazy
 
     companies = adapter.extract(src, max_pages=settings.scrape_max_pages)
@@ -108,6 +109,7 @@ def ingest(db: Session, adapter, src: str, rematch: bool = True) -> tuple[int, i
             announcement_date=c.announcement_date, source_url=c.source_url, source_ref=ref,
             is_liq=c.is_liq, stage_label=c.stage_label, stage_class=c.stage_class,
             applicant=c.applicant, admit=c.admit, claims_by=c.claims_by, form_g_by=c.form_g_by,
+            pa_pdf=c.pa_pdf,
         )
         db.add(t)
         new_targets.append(t)
@@ -128,7 +130,8 @@ def ingest(db: Session, adapter, src: str, rematch: bool = True) -> tuple[int, i
         for b in db.query(Buyer).all():
             match_buyer_against_targets(db, b, targets, use_ai=True)
 
-    prune_stale(db, settings.retention_days)
+    if prune:
+        prune_stale(db, settings.retention_days)
     return len(companies), len(new_targets)
 
 
