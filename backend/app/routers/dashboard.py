@@ -5,7 +5,7 @@ admin-owned buyer roster). They are the PREMIUM product: free / anonymous
 visitors see every opportunity card in full (process, Form G tracker, financial
 snapshot) but the client matches are locked until they log in on a paid tier.
 """
-from datetime import date
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -79,8 +79,9 @@ def build_dashboard(db: Session, user: User | None) -> Dashboard:
             matches=matches, match_count=count, locked=locked,
         ))
 
+    ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30)))   # India time
     return Dashboard(
-        generated=date.today().strftime("%d %b %Y"),
+        generated=ist_now.strftime("%d %b %Y, %H:%M IST"),
         source_url=settings.source_url, adapter=settings.source_adapter,
         ai_enabled=settings.ai_enabled,
         tier=("open" if settings.is_open else (user.tier if user else "anonymous")),
