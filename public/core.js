@@ -203,7 +203,9 @@
   }
   function setSrc() {
     const el = $("src"), t = $("srctxt"); if (!el || !t) return;
-    el.className = "src snap"; t.textContent = "IBBI feed · updated " + (DATA ? DATA.generated : "");
+    const now = new Date().toLocaleString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+    el.className = "src live";
+    t.textContent = `Live · IBBI ${DATA ? DATA.generated : ""} · checked ${now}`;
   }
   function renderStats() {
     if (!$("stats")) return;
@@ -375,10 +377,11 @@
 
   async function load() {
     let data = null;
-    try { data = await (await fetch(CFG.dataUrl, { cache: "no-store" })).json(); }
+    const bust = (u) => u + (u.indexOf("?") >= 0 ? "&" : "?") + "_=" + Date.now();   // beat the CDN cache
+    try { data = await (await fetch(bust(CFG.dataUrl), { cache: "no-store" })).json(); }
     catch (e) {
       if (CFG.fallbackUrl && CFG.fallbackUrl !== CFG.dataUrl) {
-        try { data = await (await fetch(CFG.fallbackUrl, { cache: "no-store" })).json(); } catch (e2) {}
+        try { data = await (await fetch(bust(CFG.fallbackUrl), { cache: "no-store" })).json(); } catch (e2) {}
       }
     }
     if (!data && window.EMBEDDED_FEED) data = window.EMBEDDED_FEED;   // master: baked-in snapshot fallback
