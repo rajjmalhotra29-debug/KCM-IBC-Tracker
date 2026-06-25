@@ -65,6 +65,9 @@
 
   // ---- card building blocks ----
   function researchLinks(t) {
+    // Financial-research links (Screener / Tofler / VCCEdge) are a master-only
+    // feature for now — hidden on the public file until financials ship there.
+    if (!window.MASTER_BLOB) return "";
     const name = t.name || "", qq = encodeURIComponent(name);
     const isPrivate = /\bPVT\b|\bPRIVATE\b/i.test(name);
     const links = isPrivate
