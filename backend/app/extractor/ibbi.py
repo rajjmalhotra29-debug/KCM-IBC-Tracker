@@ -141,13 +141,20 @@ class IBBIAdapter(SourceAdapter):
                 if d:
                     form_g = (d + timedelta(days=FORM_G_DAYS)).strftime("%d %b %Y")
 
-            # Form A / public-announcement PDF — the URL is inside the cell's onclick.
+            # Form A / public-announcement PDF. IBBI now serves it as a plain
+            # <a href=...announcement/xxx.pdf download> link; older pages put the
+            # URL inside an onclick="newwindow1('...pdf')". Handle both, preferring
+            # the per-announcement upload path.
             pa_pdf = ""
-            for a in tr.find_all("a", onclick=True):
-                m = re.search(r"https?://[^'\")\s]+\.pdf", a.get("onclick", ""), re.I)
-                if m:
-                    pa_pdf = m.group(0).strip().replace("ibbi.gov.in//", "ibbi.gov.in/")
-                    break
+            for a in tr.find_all("a"):
+                cand = a.get("href", "") or a.get("onclick", "")
+                m = re.search(r"https?://[^'\")\s]+\.pdf", cand, re.I)
+                if not m:
+                    continue
+                url_pdf = m.group(0).strip().replace("ibbi.gov.in//", "ibbi.gov.in/")
+                pa_pdf = url_pdf
+                if "/uploads/announcement/" in url_pdf.lower():
+                    break       # the actual Form A file — stop here
 
             out.append(ExtractedCompany(
                 name=name,
