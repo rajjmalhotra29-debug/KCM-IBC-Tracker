@@ -254,7 +254,7 @@ Return STRICT JSON only, no prose:
     const sc = Math.round(d.score || 0), col = sc >= 70 ? "var(--green)" : sc >= 45 ? "var(--amber)" : "var(--grey)";
     $("aiBody").innerHTML = `
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
-        <div style="font-family:'Fraunces',serif;font-size:34px;font-weight:600;color:${col}">${sc}</div>
+        <div style="font-family:var(--font-display);font-size:34px;font-weight:600;color:${col}">${sc}</div>
         <div><div style="font-weight:700">${esc(d.recommendation || "")}</div>
         <div class="bs">Best fit: ${(d.best_clients || []).map(esc).join(", ") || "—"}</div></div>
       </div>

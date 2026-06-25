@@ -103,10 +103,10 @@ def main() -> None:
         chtml = (FRONTEND / "client.html").read_text(encoding="utf-8")
         chtml = chtml.replace('window.ENGAGE_FORM_URL = "";', f'window.ENGAGE_FORM_URL = "{settings.engage_form_url}";')
         chtml = chtml.replace('window.ENGAGE_KEY = "";', f'window.ENGAGE_KEY = "{settings.engage_key}"; window.DATA_URL = "{settings.live_feed_url}";')
-        chtml = chtml.replace('<link rel="stylesheet" href="core.css?v=6">',
+        chtml = chtml.replace('<link rel="stylesheet" href="core.css?v=7">',
                               "<style>\n" + (FRONTEND / "core.css").read_text(encoding="utf-8") + "\n</style>")
         feed_json = json.dumps(dash.model_dump(), ensure_ascii=False)
-        chtml = chtml.replace('<script src="core.js?v=6"></script>',
+        chtml = chtml.replace('<script src="core.js?v=7"></script>',
                               "<script>window.EMBEDDED_FEED=" + feed_json + ";</script>\n<script>\n"
                               + (FRONTEND / "core.js").read_text(encoding="utf-8") + "\n</script>")
         (review / "KCM-IBC-Finder-PUBLIC.html").write_text(chtml, encoding="utf-8")
